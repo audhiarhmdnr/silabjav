@@ -377,15 +377,33 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// ── Helper: Get Local IPv4 Address ──────────────────────────────────────────
+const os = require('os');
+function getLocalIpAddresses() {
+    const interfaces = os.networkInterfaces();
+    const ips = [];
+    for (const name of Object.keys(interfaces)) {
+        for (const net of interfaces[name]) {
+            if (net.family === 'IPv4' && !net.internal) {
+                ips.push(net.address);
+            }
+        }
+    }
+    return ips.length > 0 ? ips : ['127.0.0.1'];
+}
+
 // ── Start Server ────────────────────────────────────────────────────────────
 app.listen(PORT, '0.0.0.0', () => {
+    const localIps = getLocalIpAddresses();
+    const primaryIp = localIps[0] || '127.0.0.1';
     console.log(`
 =====================================================
 🚀 XRF EXPLORER 7000 — PURE JAVASCRIPT SERVER ONLINE
-📡 Port       : http://localhost:${PORT}
-🌐 Network    : http://192.168.0.229:${PORT}
-⚙️ Runtime    : Node.js ${process.version} (No PHP required)
-🗄️ Database   : MySQL (labmineral)
+📡 Local Port  : http://localhost:${PORT}
+🌐 Network IP  : http://${primaryIp}:${PORT}
+🔗 Portal XRF  : http://${primaryIp}:${PORT}/open_xrf
+⚙️ Runtime     : Node.js ${process.version} (No PHP required)
+🗄️ Database    : MySQL (labmineral)
 =====================================================
 `);
 });
